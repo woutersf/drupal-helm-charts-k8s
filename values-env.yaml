@@ -14,6 +14,15 @@ ROCKETSHIP_PROJECT_ENVIRONMENT: test
 service_bus:
   sb_enabled: true
 
+maintenance:
+  title: 'maintenance title'
+  message: 'maintenance message'
+  emailaddress: 'info@organisation'
+  teamname: 'organisation'
+  headline: 'headline'
+  contactlink: 'contact us'
+  linkcolor: '#aabbcc'
+
 # Newrelic
 NEWRELIC_LICENSE_KEY: NR_LICENSE_KEY
 NEWRELIC_APPNAME: applicationid-tst

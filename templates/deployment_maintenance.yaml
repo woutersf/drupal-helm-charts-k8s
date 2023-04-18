@@ -36,23 +36,23 @@ spec:
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           env:
             - name: CONTACT_LINK
-              value: "Contacteer ons"
+              value: {{ .Values.maintenance.contactlink }}
             - name: MESSAGE
-              value: "We doen momenteel onderhoud aan deze site. Dit zou maar even mogen duren. Neem contact op als dit blijft duren."
+              value: {{ .Values.maintenance.message }}
             - name: RESPONSE_CODE
               value: "521 Webserver Is Down"
             - name: THEME
               value: "Light"
             - name: LINK_COLOR
-              value: "#dc8100"
+              value: {{ .Values.maintenance.linkcolor }}
             - name: MAIL_ADDRESS
-              value: "info@organisation"
+              value: {{ .Values.maintenance.emailaddress }}
             - name: TITLE
-              value: "Onderhoud"
+              value: {{ .Values.maintenance.title }}
             - name: TEAM_NAME
-              value: "organisation"
+              value: {{ .Values.maintenance.teamname }}
             - name: HEADLINE
-              value: "Even offline"
+              value: {{ .Values.maintenance.headline }}
             - name: PORT
               value: "80"
           ports:
