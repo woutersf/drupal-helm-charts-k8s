@@ -1,0 +1,73 @@
+replicaCount: 1
+
+image:
+  pullPolicy: Always
+
+division: companydivision
+applicationid: applicationid
+ingress_hostname: applicationid.domain.io
+
+environment: 'tst'
+ROCKETSHIP_PROJECT_ENVIRONMENT: test
+
+# Service bus
+service_bus:
+  sb_enabled: true
+
+# Newrelic
+NEWRELIC_LICENSE_KEY: NR_LICENSE_KEY
+NEWRELIC_APPNAME: applicationid-tst
+NEWRELIC_ENABLED: true
+
+# Dynatrace
+DYNATRACE:
+  enabled: false
+  nginx_enabled: false
+  url: DYNATRACEURL
+  token: DYNATRACETOKEN
+  
+php_image_name: ghcr.io/organisation/php-fpm-applicationid
+nginx_image_name: ghcr.io/organisation/nginx-applicationid
+cypress_image_name: ghcr.io/organisation/cypress-applicationid
+imageCredentials:
+  registry: ghcr.io
+  username: GITHUBUSER
+  password: GITHUBPASS
+  email: githubEMAIL
+
+imagePullSecrets:
+  - name: ghcrimpagepullsecret
+
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name:
+
+podSecurityContext: {}
+
+securityContext: {}
+
+service:
+  type: NodePort
+  port: 80
+
+ingress:
+  enabled: true
+  annotations: {}
+  hosts:
+    - host:
+      paths: [/]
+  tls: []
+
+resources: {}
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}

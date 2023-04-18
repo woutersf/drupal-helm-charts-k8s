@@ -1,0 +1,14 @@
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: "{{.Release.Name}}-dump"
+  namespace: {{.Release.Namespace}}
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: azurefile-csi
+  volumeName: "{{.Release.Name}}-dumps"
+  resources:
+    requests:
+      storage: 5Gi

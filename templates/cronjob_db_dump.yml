@@ -1,0 +1,35 @@
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: "{{.Release.Name}}-dbdump"
+  namespace: {{.Release.Namespace}}
+  labels:
+    type: "allcronjobs"
+    loki: {{.Values.division }}-{{.Values.environment }} 
+spec:
+  suspend: false
+  schedule: "59 23 * * *"
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      backoffLimit: 0
+      template:
+        spec:
+          {{- with .Values.imagePullSecrets }}
+          imagePullSecrets:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          volumes:
+          {{ include "drupal.volumes" . | nindent 11 }}
+          containers:
+          - name: drupal-dbdump
+            image: {{.Values.php_image_name }}:{{ .Values.image.version }}
+            imagePullPolicy: Always
+            volumeMounts:
+            {{ include "drupal.mounts" . | nindent 13 }}
+            env:
+              {{ include "drupal.envvars" . | nindent 15 }}
+            command: ["/bin/sh", "-c"]
+            args: ["export TEMP=/var/tmp;/var/www/drupal/vendor/bin/drush sql-dump --gzip --result-file=/mnt/dumps/{{.Release.Name}}-{{ .Values.ROCKETSHIP_PROJECT_ENVIRONMENT }}-{{ now | date "2006-01-02T15:04:05" }}.sql; find /mnt/dumps -maxdepth 1 -type f -mtime +30 -delete"]
+          restartPolicy: Never

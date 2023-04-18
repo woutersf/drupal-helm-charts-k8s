@@ -1,0 +1,37 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cypress-config
+  namespace: {{.Release.Namespace}}
+data:
+{{ if eq .Values.ROCKETSHIP_PROJECT_ENVIRONMENT "dev" }}
+  {{- range $path, $d := .Files.Glob "etc/cypress/cypress.dev.js" }}
+  cypress.config.js: |-
+  {{- $d | toString | nindent 4 }}
+  {{ end }}
+{{ else if eq .Values.ROCKETSHIP_PROJECT_ENVIRONMENT "tst" }}
+  {{- range $path, $d := .Files.Glob "etc/cypress/cypress.tst.js" }}
+  cypress.config.js: |-
+  {{- $d | toString | nindent 4 }}
+  {{ end }}
+{{ else if eq .Values.ROCKETSHIP_PROJECT_ENVIRONMENT "test" }}
+  {{- range $path, $d := .Files.Glob "etc/cypress/cypress.tst.js" }}
+  cypress.config.js: |-
+  {{- $d | toString | nindent 4 }}
+  {{ end }}
+{{ else if eq .Values.ROCKETSHIP_PROJECT_ENVIRONMENT "acc" }}
+  {{- range $path, $d := .Files.Glob "etc/cypress/cypress.acc.js" }}
+  cypress.config.js: |-
+  {{- $d | toString | nindent 4 }}
+  {{ end }}
+{{ else if eq .Values.ROCKETSHIP_PROJECT_ENVIRONMENT "accept" }}
+  {{- range $path, $d := .Files.Glob "etc/cypress/cypress.acc.js" }}
+  cypress.config.js: |-
+  {{- $d | toString | nindent 4 }}
+  {{ end }}
+{{ else }}
+  {{- range $path, $d := .Files.Glob "etc/cypress/cypress.prd.js" }}
+  cypress.config.js: |-
+  {{- $d | toString | nindent 4 }}
+  {{ end }}
+{{ end }}

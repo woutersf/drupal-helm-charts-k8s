@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: php-ini
+  namespace: {{.Release.Namespace}}
+data:
+  {{- range $path, $d := .Files.Glob "etc/php/php.ini" }}
+  php.ini: |-
+  {{- $d | toString | nindent 4 }}
+  {{ end }}
+
+

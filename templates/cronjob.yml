@@ -1,0 +1,44 @@
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: "{{.Release.Name}}-cron"
+  namespace: {{.Release.Namespace}}
+  labels:
+    type: "allcronjobs"
+    loki: {{.Values.division }}-{{.Values.environment }} 
+spec:
+  suspend: true
+  schedule: "* * * * *"
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      backoffLimit: 0
+      template:
+        spec:
+          {{- with .Values.imagePullSecrets }}
+          imagePullSecrets:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          volumes:
+          {{ include "drupal.volumes" . | nindent 11 }}
+          
+          containers:
+          - name: drupal-cron
+            image: {{.Values.php_image_name }}:{{ .Values.image.version }}
+            imagePullPolicy: Always
+            volumeMounts:
+            {{ include "drupal.mounts" . | nindent 13 }}
+            env:
+              {{ include "drupal.envvars" . | nindent 15 }}
+              
+            command: ["/var/www/drupal/vendor/bin/drush"]
+            args: ["cron"]
+            resources: 
+              requests: 
+                cpu: 100m
+                memory: "256Mi"
+              limits:   
+                cpu: 1
+                memory: "4112Mi"
+          restartPolicy: Never

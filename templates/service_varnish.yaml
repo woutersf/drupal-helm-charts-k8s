@@ -1,0 +1,14 @@
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: varnish
+  namespace: {{.Release.Namespace}}
+spec:
+  ports:
+  - port: 80
+    targetPort: 80
+    protocol: TCP
+    name: varnish
+  selector:
+    app: {{.Release.Name}}-varnish

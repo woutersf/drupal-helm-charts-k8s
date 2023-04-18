@@ -1,0 +1,61 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{.Release.Name}}-maintenance
+  namespace: {{.Release.Namespace}}
+  labels:
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    release: {{ .Release.Name | quote }}
+    heritage: {{ .Release.Service | quote }}
+    loki: {{.Values.division }}-{{.Values.environment }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{.Release.Name}}-maintenance
+      release: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app: {{.Release.Name}}-maintenance
+        chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+        release: {{ .Release.Name | quote }}
+        heritage: {{ .Release.Service | quote }}
+        loki: {{.Release.Namespace}}   
+      annotations:
+        date: "+%H:%M:%S %d/%m/%y"
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: maintenance
+          image: ghcr.io/organisation/maintenance:latest
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            - name: CONTACT_LINK
+              value: "Contacteer ons"
+            - name: MESSAGE
+              value: "We doen momenteel onderhoud aan deze site. Dit zou maar even mogen duren. Neem contact op als dit blijft duren."
+            - name: RESPONSE_CODE
+              value: "521 Webserver Is Down"
+            - name: THEME
+              value: "Light"
+            - name: LINK_COLOR
+              value: "#dc8100"
+            - name: MAIL_ADDRESS
+              value: "info@organisation"
+            - name: TITLE
+              value: "Onderhoud"
+            - name: TEAM_NAME
+              value: "organisation"
+            - name: HEADLINE
+              value: "Even offline"
+            - name: PORT
+              value: "80"
+          ports:
+            - name: http
+              containerPort: 80
+              protocol: TCP

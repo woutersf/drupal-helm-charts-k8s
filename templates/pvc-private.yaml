@@ -1,0 +1,14 @@
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: "{{.Release.Name}}-private"
+  namespace: {{.Release.Namespace}}
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: azurefile-csi
+  volumeName: "{{.Release.Name}}-private"
+  resources:
+    requests:
+      storage: 5Gi

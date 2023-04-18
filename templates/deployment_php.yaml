@@ -1,0 +1,106 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{.Release.Name}}-php-fpm
+  namespace: {{.Release.Namespace}}
+  labels:
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    release: {{ .Release.Name | quote }}
+    heritage: {{ .Release.Service | quote }}
+    loki: {{.Values.division }}-{{.Values.environment }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{.Release.Name}}-php-fpm
+      release: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app: {{.Release.Name}}-php-fpm
+        chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+        release: {{ .Release.Name | quote }}
+        heritage: {{ .Release.Service | quote }}
+        loki: {{.Values.division }}-{{.Values.environment }}
+      annotations:
+        date: "+%H:%M:%S %d/%m/%y"
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      volumes:
+        {{ include "drupal.volumes" . | nindent 9 }}
+
+      {{ if eq .Values.DYNATRACE.enabled true }}
+      initContainers:
+        - resources: {}
+          terminationMessagePath: /dev/termination-log
+          name: install-oneagent
+          command:
+            - /bin/sh
+          env:
+            - name: DT_API_URL
+              value: >-
+                {{.Values.DYNATRACE.url }}
+            - name: DT_PAAS_TOKEN
+              value: >-
+                {{.Values.DYNATRACE.token }}
+            - name: DT_ONEAGENT_OPTIONS
+              value: flavor=default&include=php
+          imagePullPolicy: IfNotPresent
+          volumeMounts:
+            - name: oneagent
+              mountPath: /opt/dynatrace/oneagent
+          terminationMessagePolicy: File
+          image: 'alpine:3.8'
+          args:
+            - '-c'
+            - >-
+              ARCHIVE=$(mktemp) && wget --no-check-certificate -O $ARCHIVE
+              "$DT_API_URL/v1/deployment/installer/agent/unix/paas/latest?Api-Token=$DT_PAAS_TOKEN&$DT_ONEAGENT_OPTIONS"
+              && unzip -o -d /opt/dynatrace/oneagent $ARCHIVE && rm -f $ARCHIVE
+      {{ end }}
+
+      containers:
+        - name: php-fpm
+          image: {{.Values.php_image_name }}:{{ .Values.image.version }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            {{ include "drupal.envvars" . | nindent 13 }}
+          volumeMounts:
+            {{ include "drupal.mounts" . | nindent 13 }}           
+          ports:
+            - name: http
+              containerPort: 80
+              protocol: TCP
+          resources: 
+            requests: 
+              cpu: 400m
+              memory: "256Mi"
+            limits:   
+              cpu: 1
+              memory: "4112Mi"
+              
+        - name: php-fpm-exporter
+          image: hipages/php-fpm_exporter
+          ports:
+          - containerPort: 9253
+            protocol: TCP
+            name: php-fpm-metrics
+          resources: 
+            {{ include "drupal.exporter.resources" . | nindent 13 }}
+              
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+    {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}

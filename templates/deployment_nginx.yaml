@@ -1,0 +1,103 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{.Release.Name}}-nginx
+  namespace: {{.Release.Namespace}}
+  labels:
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    release: {{ .Release.Name | quote }}
+    heritage: {{ .Release.Service | quote }}
+    loki: {{.Values.division }}-{{.Values.environment }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{.Release.Name}}-nginx
+      release: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app: {{.Release.Name}}-nginx
+        chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+        release: {{ .Release.Name | quote }}
+        heritage: {{ .Release.Service | quote }}
+        loki: {{.Values.division }}-{{.Values.environment }}
+      annotations:
+        date: "+%H:%M:%S %d/%m/%y"
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      volumes:
+        {{ include "drupal.volumes" . | nindent 9 }}
+      {{ if eq .Values.DYNATRACE.nginx_enabled true }}
+      initContainers:
+        - resources: {}
+          terminationMessagePath: /dev/termination-log
+          name: install-oneagent
+          command:
+            - /bin/sh
+          env:
+            - name: DT_API_URL
+              value: >-
+                {{.Values.DYNATRACE.url }}
+            - name: DT_PAAS_TOKEN
+              value: >-
+                {{.Values.DYNATRACE.token }}
+            - name: DT_ONEAGENT_OPTIONS
+              value: flavor=default&include=all
+          imagePullPolicy: IfNotPresent
+          volumeMounts:
+            - name: oneagent
+              mountPath: /opt/dynatrace/oneagent
+          terminationMessagePolicy: File
+          image: 'alpine:3.8'
+          args:
+            - '-c'
+            - >-
+              ARCHIVE=$(mktemp) && wget --no-check-certificate -O $ARCHIVE
+              "$DT_API_URL/v1/deployment/installer/agent/unix/paas/latest?Api-Token=$DT_PAAS_TOKEN&$DT_ONEAGENT_OPTIONS"
+              && unzip -o -d /opt/dynatrace/oneagent $ARCHIVE && rm -f $ARCHIVE
+      {{ end }}
+      containers:
+        - name: {{.Release.Name}}-nginx
+          image: {{.Values.nginx_image_name }}:{{ .Values.image.version }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            {{ include "drupal.envvars" . | nindent 13 }}
+          volumeMounts:
+          {{ include "drupal.mounts" . | nindent 11 }}
+          ports:
+            - name: http
+              containerPort: 80
+              protocol: TCP
+          resources: 
+            requests: 
+              cpu: 50m
+              memory: "50Mi"
+            limits:   
+              cpu: 200m
+              memory: "800Mi"
+        - name: nginx-exporter
+          image: nginx/nginx-prometheus-exporter
+          ports:
+          - containerPort: 9113
+            protocol: TCP
+            name: metrics
+          resources:
+            {{ include "drupal.exporter.resources" . | nindent 13 }}
+        
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+    {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}

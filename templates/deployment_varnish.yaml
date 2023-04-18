@@ -1,0 +1,47 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{.Release.Name}}-varnish
+  namespace: {{.Release.Namespace}}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{.Release.Name}}-varnish
+  template:
+    metadata:
+      labels:
+        app: {{.Release.Name}}-varnish
+        loki: {{.Values.division }}-{{.Values.environment }}
+      annotations:
+        date: "+%H:%M:%S %d/%m/%y"
+    spec:
+      
+      containers:
+      - name: {{.Release.Name}}-varnish
+        image: varnish:6.4
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - mountPath: /etc/varnish/default.vcl
+          name: varnish-vcl
+          subPath: default.vcl
+                    
+      - name: php-fpm-exporter
+        image: hipages/php-fpm_exporter
+        ports:
+        - containerPort: 9253
+          protocol: TCP
+          name: php-fpm-metrics
+        resources: 
+          {{ include "drupal.exporter.resources" . | nindent 11 }}
+            
+      volumes:
+      - name: varnish-vcl
+        configMap:
+          name: varnish-vcl
+          items:
+            - key: default.vcl
+              path: default.vcl

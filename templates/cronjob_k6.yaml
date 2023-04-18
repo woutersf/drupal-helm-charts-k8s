@@ -1,0 +1,43 @@
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: "{{.Release.Name}}-loadtest"
+  namespace: {{.Release.Namespace}}
+  labels:
+    type: "allcronjobs"
+    loki: {{.Values.division }}-{{.Values.environment }}
+spec:
+  suspend: true
+  schedule: "1 1 * * 1"
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      backoffLimit: 0
+      template:
+        spec:
+          {{- with .Values.imagePullSecrets }}
+          imagePullSecrets:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          volumes:
+          - name: k6-loadtest
+            configMap:
+              name: k6-loadtest
+              items:
+                - key: test.js
+                  path: test.js
+          containers:
+          - name: {{.Release.Name}}-k6
+            image: loadimpact/k6:latest
+            imagePullPolicy: Always
+            env:
+              - name: HOSTNAME
+                value: "{{ .Values.ingress_hostname }}"
+            command: ["k6"]
+            args: ["run", "/test.js"]
+            volumeMounts:
+            - mountPath: /test.js
+              name: k6-loadtest
+              subPath: test.js  
+          restartPolicy: Never

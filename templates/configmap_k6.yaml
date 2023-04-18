@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: k6-loadtest
+  namespace: {{.Release.Namespace}}
+data:
+  {{- range $path, $d := .Files.Glob "etc/k6/test.js" }}
+  test.js: |-
+  {{- $d | toString | nindent 4 }}
+  {{ end }}

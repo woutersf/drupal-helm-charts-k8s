@@ -1,0 +1,40 @@
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{.Release.Name}}-memcached
+  namespace: {{.Release.Namespace}}
+spec:
+  selector:
+    matchLabels:
+      app: {{.Release.Name}}-memcached
+  serviceName: {{.Release.Name}}-memcached
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: {{.Release.Name}}-memcached
+    spec:
+      containers:
+      - name: {{.Release.Name}}-memcached
+        image: memcached
+        args: ["-m 2048 -p 11211 -p 0.0.0.0"]
+        ports:
+        - containerPort: 11211
+          protocol: TCP
+        readinessProbe:
+          tcpSocket:
+            port: 11211
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        livenessProbe:
+          tcpSocket:
+            port: 11211
+          initialDelaySeconds: 15
+          periodSeconds: 20
+      - name: {{.Release.Name}}-memcached-exporter
+        image: quay.io/prometheus/memcached-exporter:latest
+        ports:
+        - containerPort: 9150
+          protocol: TCP
+          name: metrics

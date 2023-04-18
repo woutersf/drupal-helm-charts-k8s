@@ -1,0 +1,49 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: "{{.Release.Name}}-cypress"
+  namespace: {{.Release.Namespace}}
+  labels:
+    type: "allcronjobs"
+    loki: {{.Values.division }}-{{.Values.environment }} 
+spec:
+  suspend: true
+  schedule: "0 4 * * *"
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    metadata:
+      creationTimestamp: null
+    spec:
+      backoffLimit: 0
+      template:
+        spec:
+          {{- with .Values.imagePullSecrets }}
+          imagePullSecrets:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          volumes:
+            - name: cypress-config
+              configMap:
+                name: cypress-config
+                items:
+                  - key: cypress.config.js
+                    path: cypress.config.js
+            - name: tmp-files-vol
+              persistentVolumeClaim:
+                claimName: "{{.Release.Name}}-tmp"
+          containers:
+          - name: cypress-runner
+            image: {{.Values.cypress_image_name}}:{{ .Values.image.version }}
+            imagePullPolicy: Always
+            volumeMounts:
+              - mountPath: /app/cypress.config.js
+                name: cypress-config
+                subPath: cypress.config.js
+              - mountPath: /tmp/cypress
+                name: tmp-files-vol
+            env:
+              - name: ROCKETSHIP_PROJECT_ENVIRONMENT
+                value: "{{ .Values.ROCKETSHIP_PROJECT_ENVIRONMENT }}"
+            #command: ["/var/www/drupal/vendor/bin/drush"]
+            #args: ["cron"]
+          restartPolicy: Never
