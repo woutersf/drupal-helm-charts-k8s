@@ -15,6 +15,7 @@ service_bus:
   sb_enabled: true
 
 maintenance:
+  image: ghcr.io/myorg/maintenance:latest
   title: 'maintenance title'
   message: 'maintenance message'
   emailaddress: 'info@organisation'

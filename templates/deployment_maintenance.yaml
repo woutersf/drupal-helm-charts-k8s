@@ -32,7 +32,7 @@ spec:
       {{- end }}
       containers:
         - name: maintenance
-          image: ghcr.io/organisation/maintenance:latest
+          image: {{ .Values.maintenance.image }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           env:
             - name: CONTACT_LINK
