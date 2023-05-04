@@ -31,5 +31,5 @@ spec:
             env:
               {{ include "drupal.envvars" . | nindent 15 }}
             command: ["/bin/sh", "-c"]
-            args: ["export TEMP=/var/tmp;/var/www/drupal/vendor/bin/drush sql-dump --gzip --result-file=/mnt/dumps/{{.Release.Name}}-{{ .Values.ROCKETSHIP_PROJECT_ENVIRONMENT }}-{{ now | date "2006-01-02T15:04:05" }}.sql; find /mnt/dumps -maxdepth 1 -type f -mtime +30 -delete"]
+            args: ["export TEMP=/var/tmp; datetime=$(date +'%Y-%m-%dT%H:%M:%S%:z'); /var/www/drupal/vendor/bin/drush sql-dump --gzip --result-file=/mnt/dumps/{{.Release.Name}}-{{ .Values.ROCKETSHIP_PROJECT_ENVIRONMENT }}-${datetime}.sql; find /mnt/dumps -maxdepth 1 -type f -mtime +30 -delete"]
           restartPolicy: Never
