@@ -51,7 +51,8 @@ like so:
           repository: woutersf/drupal-helm-charts-k8s
           path: upstream_helm
           token: ${{ secrets.GIT_CHECKOUT_TOKEN }}
-          ref: '${{ inputs.aks_branch }}'
+          #ref: '${{ inputs.aks_branch }}'
+          ref: '2.0.0'   
 
       # the overrides from the Drupal site repo (cp -n -v)
       - name: Mv in infra helm
