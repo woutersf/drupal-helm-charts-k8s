@@ -45,6 +45,27 @@ imageCredentials:
   password: GITHUBPASS
   email: githubEMAIL
 
+resources:
+  php:
+    mem: "4112Mi"
+    cpu: 1
+  nginx:
+    mem: "800Mi"
+    cpu: 200m
+
+autoscale: 
+  cpu: 70
+
+exporter:
+  nginx:
+    enabled: true
+  php: 
+    enable: true
+  varnish: 
+    enable: true
+  memcache: 
+    enable: true
+
 imagePullSecrets:
   - name: ghcrimpagepullsecret
 

@@ -28,15 +28,17 @@ spec:
         - mountPath: /etc/varnish/default.vcl
           name: varnish-vcl
           subPath: default.vcl
-                    
-      - name: php-fpm-exporter
-        image: hipages/php-fpm_exporter
+
+      {{ if eq .Values.exporter.varnish.enabled true }}
+      - name: varnish-exporter
+        image: jangrewe/varnish-exporter
         ports:
         - containerPort: 9253
           protocol: TCP
-          name: php-fpm-metrics
+          name: varnish-metrics
         resources: 
           {{ include "drupal.exporter.resources" . | nindent 11 }}
+        {{ end }}
             
       volumes:
       - name: varnish-vcl

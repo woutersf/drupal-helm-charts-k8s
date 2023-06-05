@@ -80,9 +80,10 @@ spec:
               cpu: 400m
               memory: "256Mi"
             limits:   
-              cpu: 1
-              memory: "4112Mi"
+              cpu: {{ .Values.resources.php.cpu }}
+              memory: {{ .Values.resources.php.mem }}
               
+        {{ if eq .Values.exporter.php.enabled true }}
         - name: php-fpm-exporter
           image: hipages/php-fpm_exporter
           ports:
@@ -91,6 +92,7 @@ spec:
             name: php-fpm-metrics
           resources: 
             {{ include "drupal.exporter.resources" . | nindent 13 }}
+        {{ end }}
               
       {{- with .Values.nodeSelector }}
       nodeSelector:

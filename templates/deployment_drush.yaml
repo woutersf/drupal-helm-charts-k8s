@@ -47,11 +47,11 @@ spec:
               protocol: TCP
           resources: 
             requests: 
-              cpu: 20m
+              cpu: 100m
               memory: "256Mi"
             limits:   
-              cpu: 2
-              memory: "4112Mi"
+              cpu: {{ .Values.resources.php.cpu }}
+              memory: {{ .Values.resources.php.mem }}
               
       {{- with .Values.nodeSelector }}
       nodeSelector:

@@ -32,9 +32,11 @@ spec:
             port: 11211
           initialDelaySeconds: 15
           periodSeconds: 20
+      {{ if eq .Values.exporter.memcache.enabled true }}
       - name: {{.Release.Name}}-memcached-exporter
         image: quay.io/prometheus/memcached-exporter:latest
         ports:
         - containerPort: 9150
           protocol: TCP
           name: metrics
+      {{ end }}

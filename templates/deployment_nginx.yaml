@@ -78,8 +78,9 @@ spec:
               cpu: 50m
               memory: "50Mi"
             limits:   
-              cpu: 200m
-              memory: "800Mi"
+              cpu: {{ .Values.resources.nginx.cpu }}
+              memory: {{ .Values.resources.nginx.mem }}
+        {{ if eq .Values.exporter.nginx.enabled true }}
         - name: nginx-exporter
           image: nginx/nginx-prometheus-exporter
           ports:
@@ -88,6 +89,7 @@ spec:
             name: metrics
           resources:
             {{ include "drupal.exporter.resources" . | nindent 13 }}
+        {{ end }}
         
       {{- with .Values.nodeSelector }}
       nodeSelector:

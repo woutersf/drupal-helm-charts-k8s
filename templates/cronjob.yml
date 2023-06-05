@@ -39,6 +39,6 @@ spec:
                 cpu: 100m
                 memory: "256Mi"
               limits:   
-                cpu: 1
-                memory: "4112Mi"
+                cpu: {{ .Values.resources.php.cpu }}
+                memory: {{ .Values.resources.php.mem }}
           restartPolicy: Never
